@@ -4,7 +4,7 @@ module Reversi
       def select(board)
         while (true)
           if (@game.canvas.select)
-            break if board.movable?(board.selected.x, board.selected.y, board.player)
+            break if board.movable?(board.selected, board.player)
           end
           @game.canvas.draw
         end

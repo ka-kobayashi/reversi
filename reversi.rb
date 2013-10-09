@@ -8,8 +8,7 @@ require REVERSI_DIR+'game.rb'
 require 'optparse'
 options = {}
 parser = OptionParser.new
-parser.on('--width=n'){|n| options[:width] = n.to_i}
-parser.on('--height=n'){|n| options[:height] = n.to_i}
+parser.on('-s', '--size=n'){|n| options[:size] = n.to_i}
 parser.on('-w', '--white=[name]'){|name| options[:white] = name}
 parser.on('-b', '--black=[name]'){|name| options[:black] = name}
 parser.on('-i', '--interval=n'){|n| options[:interval] = n.to_f}

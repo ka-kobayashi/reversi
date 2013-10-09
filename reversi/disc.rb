@@ -9,24 +9,21 @@ module Reversi
     SPACE_ICON = "　"
     ICON_MAP = {SPACE => SPACE_ICON, WHITE => WHITE_ICON, BLACK => BLACK_ICON}
 
-    attr_accessor :board, :x, :y, :color
+    attr_accessor :board, :x, :y, :color, :fixed
 
-    def initialize(board, x, y, color = SPACE)
+    def initialize(board, x, y, color = SPACE, fixed = false)
       @board = board
       @color = color
-      position(x,y)
-    end
-
-    def dup
-      Disc.new(@board, @x.dup, @y.dup, @color.dup)
+      @x = x
+      @y = y
     end
 
     def movable?(color)
-      @board.movable?(@x, @y, color)
+      @board.movable?(self, color)
     end
 
     def offset(x, y)
-      @board.select(@x+x, @y+y)
+      @board.get(@x+x, @y+y)
     end
 
     def space?
@@ -41,9 +38,8 @@ module Reversi
       @color == BLACK
     end
 
-    def position(x, y)
-      @x = x
-      @y = y
+    def fixed?
+      @fixed
     end
 
     def reverse
@@ -67,7 +63,7 @@ module Reversi
     end
 
     def inspect
-      "(%d,%d):%s" % [@x, @y, to_s]
+      "(%d,%d,%s)" % [@x, @y, to_s]
     end
   end
 end

@@ -1,36 +1,46 @@
 module Reversi
   class Board
-    attr_reader :discs, :width, :height, :player, :canvas, :turn
-    attr_accessor :logs, :selected, :canvas
+    attr_accessor :size, :discs, :player, :logs, :selected, :canvas, :stats
+    @@directions = [-1, 0, 1].repeated_permutation(2).reject{|x, y| x == 0 && y == 0}
 
     def initialize(options = {})
       @options = options
-      @width = options[:width]
-      @height = options[:height]
+      @size = options[:size]
       @logs = []
-      @directions = [-1, 0, 1].repeated_permutation(2).reject{|x, y| x == 0 && y == 0}
-      reset
     end
 
-    def dup
-      Marshal.load(Marshal.dump(self))
+    def directions
+      @@directions
     end
 
-    def reset
-      @player = Disc::WHITE
-      @discs = Array.new(@height){|y| Array.new(@width){|x| Reversi::Disc.new(self, x, y) }}
-      [-1, 0].repeated_permutation(2).each do |x, y|
-        select(@width/2 + x, @height/2 + y).color = (x+y).odd? ? Disc::WHITE : Disc::BLACK
+    def initialize_copy(base)
+      @discs = Array.new(@size*@size)
+      for i in (0..(@size*@size-1)) do
+        @discs[i] = base.discs[i].dup
+        @discs[i].board = self
       end
-      @selected = select(0, 0)
-      @turn = 1
+      @logs = []
+    end
+
+    def reset!
+      @player = Disc::WHITE
+      @discs = Array.new(@size*@size)
+      for y in (0..(@size-1)) do
+        for x in (0..(@size-1)) do
+          @discs[(x + y*@size)] = Disc.new(self, x, y)
+        end
+      end
+      [-1, 0].repeated_permutation(2).each do |x, y|
+        get(@size/2+x, @size/2+y).color = (x+y).odd? ? Disc::WHITE : Disc::BLACK
+      end
+      @selected = get(0, 0)
+      stats!
+      self
     end
 
     def pass?(player = @player)
-      @discs.each_with_index do |line, y|
-        line.each_with_index do |disc, x|
-          return false if movable?(disc.x, disc.y, player)
-        end
+      @discs.each do |disc|
+        return false if movable?(disc, player)
       end
       return true
     end
@@ -48,39 +58,35 @@ module Reversi
     end
 
     def fixed(player = @player)
-      discs = []
-      @discs.each do |line|
-        line.each do |disc|
-          discs << disc if (disc.color == player && fixed?(disc.x, disc.y))
-        end
-      end
-      discs
+      @discs.select{|d| (d.color == player && fixed?(d))}
     end
 
-    def fixed?(x, y)
-      (fixed_line?(x, y, -1,  0) || fixed_line?(x, y, 1, 0)) && #横
-      (fixed_line?(x, y,  0, -1) || fixed_line?(x, y, 0, 1)) && #縦
-      (fixed_line?(x, y, -1, -1) || fixed_line?(x, y, 1, 1))    #斜
+    def fixed?(disc)
+      return true  if disc.fixed?
+      return false if disc.space?
+
+      disc.fixed =
+      (fixed_line?(disc, -1,  0) || fixed_line?(disc, 1, 0)) && #横
+      (fixed_line?(disc,  0, -1) || fixed_line?(disc, 0, 1)) && #縦
+      (fixed_line?(disc, -1, -1) || fixed_line?(disc, 1, 1))    #斜
     end
 
-    def fixed_line?(x, y, offset_x, offset_y)
-      return false if (base = select(x, y)) == nil || base.space?
+    def fixed_line?(base, x, y)
+      return false if base.space?
 
       color = base.color
-      for i in (1..[@width, @height].max) do
-        d = base.offset(offset_x*i, offset_y*i)
+      for i in (1..@size-1) do
+        d = base.offset(x*i, y*i)
         return false unless (d == nil || d.color == color)
       end
       return true
     end
 
-    def reverse(x, y, color)
-      return unless base = select(x, y)
-
-      @directions.each do |offset_x, offset_y|
-        next unless reversible?(base, color, {:x => offset_x, :y => offset_y})
-        for i in (1..[@width, @height].max) do
-          d = base.offset(offset_x*i, offset_y*i)
+    def reverse(base, color)
+      directions.each do |x, y|
+        next unless reversible?(base, color, {:x => x, :y => y})
+        for i in (1..@size) do
+          d = base.offset(x*i, y*i)
           if (d == nil || d.space? || d.color == color)
             break
           end
@@ -91,7 +97,7 @@ module Reversi
     end
 
     def reversible?(base, color, offset)
-      for i in (1..[@width, @height].max) do
+      for i in (1..@size) do
         d = base.offset(offset[:x]*i, offset[:y]*i)
         if (d == nil || d.space? || (d.color == color && i == 1))
           break
@@ -103,12 +109,11 @@ module Reversi
       return false
     end
 
-    def movable?(x, y, player = @player) 
-      if (base = select(x, y)) == nil || !base.space?
-        return false
-      end
-      @directions.each do |offset_x, offset_y|
-        if reversible?(base, player, {:x => offset_x, :y => offset_y})
+    def movable?(base, player = @player) 
+      return false unless base.space?
+
+      directions.each do |x, y|
+        if reversible?(base, player, {:x => x, :y => y})
           return true
         end
       end
@@ -116,49 +121,55 @@ module Reversi
     end
 
     def movable(player = @player)
-      movables = []
-      @discs.each do |line|
-        line.each do |disc|
-          movables << disc if disc.movable?(player)
-        end
-      end
-      movables
+      @discs.select{|d| d.movable?(player)}
     end
 
-    def move(x, y, player = @player)
-      disc = select(x, y)
-      raise "already exists: (#{x}, #{y})" unless disc.space?
-      raise "can't move: (#{x}, #{y})" unless movable?(x, y, player)
-
+    def move(disc, player = @player)
+      disc = get(disc.x, disc.y)
       @selected = disc
       disc.color = player
       @canvas.moved if @canvas
-      reverse(x, y, player)
+      reverse(disc, player)
+      stats!
       next_player! 
       if pass?
         @logs << Disc.icon(@player) + ": PASS"
         next_player! 
       end
-      @turn += 1
     end
 
-    def select(x, y)
+    def get(x, y)
       return nil if x < 0 || y < 0
       begin
-        @discs[y.to_i][x.to_i]
+        @discs[x + y*@size]
       rescue
         nil
       end
     end
 
+    def stats!
+      @stats = {}
+      [Disc::WHITE, Disc::BLACK].each do |player|
+        @stats[player] = {:score => scores[player], :movable => movable(player), :fixed => fixed(player)}
+      end
+    end
+
+    def stats(player = @player) 
+      stats! unless @stats
+      @stats[player]
+    end
+
     def scores
-      colors = @discs.map{|line| line.map{|d| d.color}}.flatten
+      colors = @discs.map{|d| d.color}
       Hash[*[Disc::SPACE, Disc::WHITE, Disc::BLACK].map{|c| [c, colors.count(c)]}.flatten]
     end
 
+    def score(player = @player)
+      @stats[player][:score]
+    end
+
     def winner?(player = @player)
-      s = scores
-      s[player] > s[next_player(player)]
+      score(player) > score(next_player(player))
     end
   end
 end

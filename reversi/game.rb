@@ -1,23 +1,22 @@
 module Reversi
   class Game
-    attr_reader :board, :canvas, :player
+    attr_reader :board, :canvas, :players
 
     def run(options = {})
       options = {
-        :interval => 0.15, :width => 8, :height => 8, 
-        :white => :random, :black => :minimax
+        :interval => 0.15, :size => 8, :white => :random, :black => :minimax
       }.merge(options)
+      @board = Board.new(options).reset!
+      @canvas = Canvas.new(@board, options)
       @players = {
-        Disc::WHITE => Reversi::Player.instance(self, options[:white]),
-        Disc::BLACK => Reversi::Player.instance(self, options[:black])
+        Disc::WHITE => Player.instance(Disc::WHITE, self, options[:white]),
+        Disc::BLACK => Player.instance(Disc::BLACK, self, options[:black])
       }
-      @board = Reversi::Board.new(options)
-      @canvas = Reversi::Canvas.new(@board, options)
       @board.canvas = @canvas
       @canvas.draw
       while (!@board.over?)
         @board.selected = @players[@board.player].select(@board)
-        @board.move(@board.selected.x, @board.selected.y, @board.player)
+        @board.move(@board.selected, @board.player)
         @canvas.draw(@players[@board.player].human?)
         sleep options[:interval] if options[:interval] > 0
       end

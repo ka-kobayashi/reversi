@@ -67,39 +67,40 @@ module Reversi
       # x axis
       attrset(color_pair(PAIR_AXIS))
       setpos(line+=1, 0)
-      addstr("  " + (0..(@board.width-1)).map{|n| n < 10 ? " #{n}" : n}.join())
+      addstr("  " + (0..(@board.size-1)).map{|n| " "+(n+97).chr}.join())
 
       # board
       setpos(++line, 0)
-      @board.discs.each_with_index do |discs, y|
-        setpos(line += 1, 0)
-        attrset(color_pair(PAIR_AXIS))
-        addstr(y.to_s)
-        discs.each_with_index do |d, x|
-          setpos(line, 2+x)
-          if @board.selected && @board.selected.x == x && @board.selected.y == y
-            attrset(color_pair(PAIR_SELECTED))
-            addstr(d.to_s)
-          elsif movable && d.movable?(@board.player)
-            attrset(color_pair(PAIR_MOVABLE))
-            addstr(Disc::SPACE_ICON)
-          elsif fixed && @board.fixed?(x, y)
-            attrset(color_pair(PAIR_FIXED))
-            addstr(d.to_s)
-          else 
-            attrset(color_pair(PAIR_DISC))
-            addstr(d.to_s)
-          end
+      @board.discs.each do |d|
+        if (d.x == 0) 
+          setpos(line += 1, 0)
+          attrset(color_pair(PAIR_AXIS))
+          addstr(d.y.to_s)
         end
-        setpos(line, 2+discs.size)
-        attrset(color_pair(PAIR_AXIS))
-        addstr(" "+y.to_s)
+
+        setpos(line, d.x + 2)
+        if @board.selected && @board.selected.x == d.x && @board.selected.y == d.y
+          attrset(color_pair(PAIR_SELECTED))
+        elsif movable && d.movable?(@board.player)
+          attrset(color_pair(PAIR_MOVABLE))
+        elsif fixed && @board.fixed?(d)
+          attrset(color_pair(PAIR_FIXED))
+        else 
+          attrset(color_pair(PAIR_DISC))
+        end
+        addstr(d.to_s)
+
+        if (d.x == @board.size - 1) 
+          setpos(line, @board.size + 2)
+          attrset(color_pair(PAIR_AXIS))
+          addstr(" "+d.y.to_s)
+        end
       end
 
       # x axis
       setpos(line+=1, 0)
       attrset(color_pair(PAIR_AXIS))
-      addstr("  " + (0..(@board.width-1)).map{|n| n < 10 ? " #{n}" : n}.join())
+      addstr("  " + (0..(@board.size-1)).map{|n| " "+(n+97).chr}.join())
 
       # score
       attrset(color_pair(PAIR_INFO))
@@ -108,7 +109,7 @@ module Reversi
       setpos(line += 1, 1)
       addstr "Player: %s" % [Disc.icon(@board.player)]
       setpos(line += 1, 1)
-      addstr "Selected: [%d, %d]" % [@board.selected.x, @board.selected.y]
+      addstr "Selected: [%d, %d]" % [@board.selected.x, @board.selected.y] if @board.selected
 
       #logs
       @board.logs.last(10).each do |log| 
