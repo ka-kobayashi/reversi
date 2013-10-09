@@ -12,6 +12,14 @@ module Reversi
       reset
     end
 
+    def clone
+      Marshal.load(Marshal.dump(self))
+    end
+
+    def initialize_copy(obj)
+      # @discs = Array.new(@height){|y| Array.new(@width){|x| obj.select(x,y).clone}}
+    end
+
     def reset
       @player = Disc::WHITE
       @discs = Array.new(@height){|y| Array.new(@width){|x| Reversi::Disc.new(self, x, y) }}
@@ -94,6 +102,7 @@ module Reversi
       disc.color = color
       @canvas.moved if @canvas
       reverse(x, y, color)
+      next_player! 
     end
 
     def select(x, y)

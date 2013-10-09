@@ -24,7 +24,6 @@ module Reversi
           @board.selected = @players[@board.player].select(@board.clone)
         end
         @board.move(@board.selected.x, @board.selected.y, @board.player)
-        @board.next_player! 
         if @board.pass?
           @board.next_player! 
         end

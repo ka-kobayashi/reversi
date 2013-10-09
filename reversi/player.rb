@@ -21,6 +21,17 @@ module Reversi
         @name == nil
       end
 
+      def selectable(board, player = nil)
+        player = board.player unless player
+        discs = []
+        board.discs.each do |line|
+          line.each do |disc|
+            discs << disc if disc.movable?(player)
+          end
+        end
+        discs
+      end
+
       def select(board)
         raise 'override me'
       end
