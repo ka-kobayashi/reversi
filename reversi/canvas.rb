@@ -3,7 +3,7 @@ require "curses"
 module Reversi
   class Canvas
     include Curses
-    attr_reader :board
+    attr_reader :board, :options
 
     PAIR_DISC = 0
     PAIR_MOVABLE = 1
@@ -11,12 +11,13 @@ module Reversi
     PAIR_AXIS = 3
     PAIR_INFO = 4
 
-    def initialize(board)
+    def initialize(board, options)
       @board = board
+      @options = {:interval => 0.5}.merge(options)
+      
       init_screen
       stdscr.keypad true
       start_color
-
       init_pair(PAIR_DISC,     COLOR_WHITE, COLOR_BLACK)
       init_pair(PAIR_MOVABLE,  COLOR_WHITE, COLOR_GREEN)
       init_pair(PAIR_SELECTED, COLOR_WHITE, COLOR_RED)
@@ -48,6 +49,14 @@ module Reversi
       return false
     end
 
+    def moved
+      draw(false)
+    end
+
+    def reversed
+      draw(false)
+      sleep @options[:interval] if @options[:interval] > 0
+    end
 
     def draw(movable = true)
       line = 0

@@ -12,7 +12,7 @@ module Reversi
         Disc::BLACK => Reversi::Player.instance(options[:black])
       }
       @board = Reversi::Board.new(options)
-      @canvas = Reversi::Canvas.new(@board)
+      @canvas = Reversi::Canvas.new(@board, options)
       @board.canvas = @canvas
       @canvas.draw
       while (!@board.over?)

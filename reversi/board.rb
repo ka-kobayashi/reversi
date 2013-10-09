@@ -35,8 +35,12 @@ module Reversi
       scores[Disc::SPACE] == 0 || (pass?(Disc::WHITE) && pass?(Disc::BLACK))
     end
 
+    def next_player
+      @player == Disc::WHITE ? Disc::BLACK : Disc::WHITE
+    end
+
     def next_player!
-      @player = (@player == Disc::WHITE ? Disc::BLACK : Disc::WHITE)
+      @player = next_player
     end
 
     def reverse(x, y, color, animation = true)
@@ -50,10 +54,7 @@ module Reversi
             break
           end
           d.reverse!
-          if animation
-            @canvas.draw(false)
-            sleep @options[:interval] if @options[:interval] > 0
-          end
+          @canvas.reversed if @canvas
         end
       end
     end
@@ -84,14 +85,14 @@ module Reversi
       return false
     end
 
-    def move(x, y, color, animation = true)
+    def move(x, y, color)
       disc = select(x, y)
       raise "already exists: (#{x}, #{y})" unless disc.space?
       raise "can't move: (#{x}, #{y})" unless movable?(x, y, color)
 
       @selected = disc
       disc.color = color
-      @canvas.draw(false) if animation
+      @canvas.moved if @canvas
       reverse(x, y, color)
     end
 
