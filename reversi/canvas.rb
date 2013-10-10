@@ -76,7 +76,7 @@ module Reversi
       # x axis
       attrset(color_pair(PAIR_AXIS))
       setpos(line+=1, 0)
-      addstr("  " + (0..(board.size-1)).map{|n| " "+(n+97).chr}.join())
+      addstr("  " + (0..(board.size-1)).map{|n| " #{n}"}.join())
 
       # board
       setpos(++line, 0)
@@ -109,7 +109,7 @@ module Reversi
       # x axis
       setpos(line+=1, 0)
       attrset(color_pair(PAIR_AXIS))
-      addstr("  " + (0..(board.size-1)).map{|n| " "+(n+97).chr}.join())
+      addstr("  " + (0..(board.size-1)).map{|n| " #{n}"}.join())
 
       # score
       attrset(color_pair(PAIR_INFO))

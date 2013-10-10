@@ -1,5 +1,6 @@
 module Reversi
   class Game
+    include Reversi::Logger
     attr_reader :board, :canvas, :players, :history
 
     def run(options = {})

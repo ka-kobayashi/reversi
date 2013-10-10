@@ -3,7 +3,7 @@ require 'benchmark'
 module Reversi
   module Player
     def self.instance(color, game, name, options={})
-      name = "human" unless name || name == ""
+      name = "human" if name == nil || name == ""
       require "#{File.dirname(__FILE__)}/player/#{name}.rb"
       Reversi::Player.const_get(name.to_s.capitalize).new(color, game, name, options)
     end
