@@ -1,5 +1,7 @@
 module Reversi
   class Board
+    include Reversi::Logger
+
     attr_accessor :size, :discs, :player, :logs, :selected, :canvas, :stats
     @@directions = [-1, 0, 1].repeated_permutation(2).reject{|x, y| x == 0 && y == 0}
     @@offset_corners = []
@@ -15,18 +17,18 @@ module Reversi
       @@directions
     end
 
-    def dup
-      Marshal.load(Marshal.dump(self))
-    end
+    # def dup
+    #   Marshal.load(Marshal.dump(self))
+    # end
 
-   # def initialize_copy(base)
-     # @discs = Array.new(@size*@size)
-     # for i in (0..(@size*@size-1)) do
-       # @discs[i] = base.discs[i].dup
-       # @discs[i].board = self
-     # end
-     # @logs = []
-   # end
+    def initialize_copy(base)
+      @discs = Array.new(@size*@size)
+      for i in (0..(@size*@size-1)) do
+        @discs[i] = base.discs[i].dup
+        @discs[i].board = self
+      end
+      @logs = []
+    end
 
     def reset!
       @player = Disc::WHITE
@@ -102,6 +104,7 @@ module Reversi
         next unless reversible?(base, color, {:x => x, :y => y})
         for i in (1..@size) do
           d = base.offset(x*i, y*i)
+          logger.trace("%s: %s (%d,%d)" % [base, d, x*i, y*i])
           if (d == nil || d.space? || d.color == color)
             break
           end

@@ -10,7 +10,6 @@ module Reversi
 
     class Base
       include Reversi::Logger
-
       attr_reader :mycolor, :game, :name, :options, :max_depth
 
       def initialize(mycolor, game, name, options)
