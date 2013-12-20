@@ -7,15 +7,19 @@ module Reversi
 
     def run(options = {})
       @board = Reversi::Board.new(options)
+      @board.draw
       while (!@board.over?)
-        @board.draw
         while (true)
           print ":"
           pos = STDIN.gets.strip
           break if @board.movable?(pos[0], pos[1], @board.player)
         end
         @board.move(pos[0], pos[1], @board.player)
-        @board.next_player!
+        @board.next_player! 
+        if @board.pass?
+          @board.next_player! 
+        end
+        @board.draw
       end
     end
   end
@@ -25,7 +29,7 @@ module Reversi
     attr_accessor :logs
 
     def initialize(options = {})
-      options = {:width => 8, :height => 8}.merge(options)
+      options = {:width => 3, :height => 3}.merge(options)
       @width = options[:width]
       @height = options[:height]
       @turn = 0
@@ -39,8 +43,18 @@ module Reversi
       end
     end
 
+    def pass?(color = nil)
+      color = @player unless color
+      @discs.each_with_index do |line, y|
+        line.each_with_index do |disc, x|
+          return false if movable?(disc.x, disc.y, color)
+        end
+      end
+      return true
+    end
+
     def over?
-      scores[Disc::SPACE] == 0
+      scores[Disc::SPACE] == 0 || (pass?(Disc::WHITE) && pass?(Disc::BLACK))
     end
 
     def next_player!
@@ -149,7 +163,7 @@ module Reversi
     end
 
     def space?
-      !white? && !black?
+      !(white? || black?)
     end
 
     def exists?
