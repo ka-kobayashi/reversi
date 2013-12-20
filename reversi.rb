@@ -3,7 +3,6 @@ module Reversi
     attr_reader :board
 
     def initialize()
-
     end
 
     def run(options = {})
@@ -13,11 +12,10 @@ module Reversi
         while (true)
           print ":"
           pos = STDIN.gets.strip
-          break @board.movable?(pos[0], pos[1], @board.player)
+          break if @board.movable?(pos[0], pos[1], @board.player)
         end
         @board.move(pos[0], pos[1], @board.player)
         @board.next_player!
-        p @board.score
       end
     end
   end
@@ -25,12 +23,6 @@ module Reversi
   class Board
     attr_reader :discs, :width, :height, :turn, :player
     attr_accessor :logs
-    @discs
-    @width
-    @height
-    @player
-    @turn
-    @logs
 
     def initialize(options = {})
       options = {:width => 8, :height => 8}.merge(options)
@@ -39,6 +31,7 @@ module Reversi
       @turn = 0
       @player = Disc::WHITE
       @logs = []
+      @directions = [-1, 0, 1].repeated_permutation(2).reject{|x, y| x == 0 && y == 0}
 
       @discs = Array.new(@height){|y| Array.new(@width){|x| Reversi::Disc.new(self, x, y) }}
       [-1, 0].repeated_permutation(2).each do |x, y|
@@ -47,7 +40,7 @@ module Reversi
     end
 
     def over?
-      @turn == (@width * @height) - 1
+      scores[Disc::SPACE] == 0
     end
 
     def next_player!
@@ -55,12 +48,12 @@ module Reversi
     end
 
     def reverse(x, y, color)
-      base = select(x, y)
-      return if base == nil
+      return unless base = select(x, y)
 
-      [-1, 0, 1].repeated_permutation(2).reject{|x, y| x == 0 && y == 0}.each do |ox, oy|
+      @directions.each do |offset_x, offset_y|
+        next unless reversible?(base, color, {:x => offset_x, :y => offset_y})
         for i in (1..[@width, @height].max) do
-          d = base.offset(ox*i, oy*i)
+          d = base.offset(offset_x*i, offset_y*i)
           if (d == nil || d.space? || d.color == color)
             break
           end
@@ -69,19 +62,27 @@ module Reversi
       end
     end
 
-    def movable?(x, y, color) 
-      base = select(x, y)
-      return false if base == nil || !base.space?
+    def reversible?(base, color, offset)
+      for i in (1..[@width, @height].max) do
+        d = base.offset(offset[:x]*i, offset[:y]*i)
+        if (d == nil || d.space? || (d.color == color && i == 1))
+          break
+        end
+        if (d.color == color && i > 1)
+          return true
+        end
+      end
+      return false
+    end
 
-      [-1, 0, 1].repeated_permutation(2).reject{|x, y| x == 0 && y == 0}.each do |ox, oy|
-        for i in (1..[@width, @height].max) do
-          d = base.offset(ox*i, oy*i)
-          if (d == nil || d.space? || (d.color == color && i == 1))
-            break
-          end
-          if (d.color == color && i > 1)
-            return true
-          end
+    def movable?(x, y, color) 
+      if (base = select(x, y)) == nil || !base.space?
+        return false
+      end
+
+      @directions.each do |offset_x, offset_y|
+        if reversible?(base, color, {:x => offset_x, :y => offset_y})
+          return true
         end
       end
       return false
@@ -114,12 +115,12 @@ module Reversi
       end
 
       puts "Player: %s" % [Disc.label(@player)]
-      puts "Score %s:%d, %s:%d" % [Disc.label(Disc::WHITE), score[Disc::WHITE], Disc.label(Disc::BLACK), score[Disc::BLACK]]
+      puts "Score : %s=%d, %s=%d" % [Disc.label(Disc::WHITE), scores[Disc::WHITE], Disc.label(Disc::BLACK), scores[Disc::BLACK]]
       puts
       puts @logs.join("\n")
     end
 
-    def score
+    def scores
       colors = @discs.map{|line| line.map{|d| d.color}}.flatten
       Hash[*[Disc::SPACE, Disc::WHITE, Disc::BLACK].map{|c| [c, colors.count(c)]}.flatten]
     end
@@ -137,15 +138,10 @@ module Reversi
 
     attr_accessor :border, :x, :y, :color
 
-    @board = nil
-    @x = nil
-    @y = nil
-    @color = nil
-
     def initialize(board, x, y, color = SPACE)
       @board = board
-      position(x,y)
       @color = color
+      position(x,y)
     end
 
     def offset(x, y)
@@ -190,7 +186,7 @@ module Reversi
     end
 
     def self.label(color)
-      return SPACE_ICON if (color == nil) 
+      return SPACE_ICON if color == SPACE 
       return WHITE_ICON if color == WHITE
       return BLACK_ICON if color == BLACK
     end
