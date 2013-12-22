@@ -1,9 +1,10 @@
+require "curses"
+
 module Reversi
   class Canvas
-    require "curses"
     include Curses
 
-    attr_accessor :board
+    attr_reader :board
 
     def initialize(board)
       @board = board
@@ -31,14 +32,14 @@ module Reversi
       setpos(++line, 1)
       @board.discs.each_with_index do |discs, y|
         setpos(line += 1, 1)
-        addstr("#{y} #{discs.map{|d| d.to_s }.join()}")
+        addstr("#{y} #{discs.map{|d| d.to_s}.join()}")
       end
 
       # score
       setpos(line += 2, 1)
-      addstr "Score : %s%0d, %s%0d" % [Disc.label(Disc::WHITE), @board.scores[Disc::WHITE], Disc.label(Disc::BLACK), @board.scores[Disc::BLACK]]
+      addstr "Score : %s%0d, %s%0d" % [Disc.icon(Disc::WHITE), @board.scores[Disc::WHITE], Disc.icon(Disc::BLACK), @board.scores[Disc::BLACK]]
       setpos(line += 1, 1)
-      addstr "Player: %s" % [Disc.label(@board.player)]
+      addstr "Player: %s" % [Disc.icon(@board.player)]
 
       #logs
       @board.logs.each do |log| 

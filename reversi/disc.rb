@@ -8,6 +8,7 @@ module Reversi
     BLACK_ICON = "◯"
     SPACE_ICON = "　"
     MOVABLE_ICON = '[]'
+    ICON_MAP = {SPACE => SPACE_ICON, WHITE => WHITE_ICON, BLACK => BLACK_ICON}
 
     attr_accessor :board, :x, :y, :color
 
@@ -17,16 +18,16 @@ module Reversi
       position(x,y)
     end
 
+    def movable?(color)
+      @board.movable?(@x, @y, color)
+    end
+
     def offset(x, y)
-      @board.select(@x + x, @y + y)
+      @board.select(@x+x, @y+y)
     end
 
     def space?
       !(white? || black?)
-    end
-
-    def exists?
-      !space?
     end
 
     def white?
@@ -43,9 +44,7 @@ module Reversi
     end
 
     def reverse
-      if space?
-        SPACE
-      else
+      unless space?
         white? ? BLACK : WHITE
       end
     end
@@ -58,13 +57,15 @@ module Reversi
       "(%s, %s, %s)" % [@x, @y, @color]
     end
 
-    def self.label(color)
-      return SPACE_ICON if color == SPACE 
-      return WHITE_ICON if color == WHITE
-      return BLACK_ICON if color == BLACK
+    def self.icon(color)
+      ICON_MAP[color]
     end
 
     def to_s
+      self.class.icon(@color)
+    end
+
+    def to_s2
       if exists?
         white? ? WHITE_ICON : BLACK_ICON
       else

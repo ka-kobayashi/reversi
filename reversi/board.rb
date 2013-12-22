@@ -1,18 +1,20 @@
 module Reversi
   class Board
-    attr_reader :discs, :width, :height, :turn, :player
-    attr_accessor :logs, :canvas
+    attr_reader :discs, :width, :height, :player, :canvas
+    attr_accessor :logs
 
     def initialize(options = {})
-      options = {:width => 3, :height => 3}.merge(options)
+      options = {:width => 8, :height => 8}.merge(options)
       @width = options[:width]
       @height = options[:height]
-      @turn = 0
-      @player = Disc::WHITE
       @logs = []
       @directions = [-1, 0, 1].repeated_permutation(2).reject{|x, y| x == 0 && y == 0}
       @canvas = Reversi::Canvas.new(self)
+      reset
+    end
 
+    def reset
+      @player = Disc::WHITE
       @discs = Array.new(@height){|y| Array.new(@width){|x| Reversi::Disc.new(self, x, y) }}
       [-1, 0].repeated_permutation(2).each do |x, y|
         select(@width/2 + x, @height/2 + y).color = (x+y).odd? ? Disc::WHITE : Disc::BLACK
@@ -37,7 +39,7 @@ module Reversi
       @player = (@player == Disc::WHITE ? Disc::BLACK : Disc::WHITE)
     end
 
-    def reverse(x, y, color)
+    def reverse(x, y, color, redraw = true)
       return unless base = select(x, y)
 
       @directions.each do |offset_x, offset_y|
@@ -48,6 +50,10 @@ module Reversi
             break
           end
           d.reverse!
+          if redraw
+            @canvas.draw
+            sleep 0.5
+          end
         end
       end
     end
