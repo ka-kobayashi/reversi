@@ -1,7 +1,7 @@
 module Reversi
   class Board
     attr_reader :discs, :width, :height, :player, :canvas
-    attr_accessor :logs
+    attr_accessor :logs, :selected
 
     def initialize(options = {})
       options = {:width => 8, :height => 8}.merge(options)
@@ -19,6 +19,7 @@ module Reversi
       [-1, 0].repeated_permutation(2).each do |x, y|
         select(@width/2 + x, @height/2 + y).color = (x+y).odd? ? Disc::WHITE : Disc::BLACK
       end
+      @selected = select(0, 0)
     end
 
     def pass?(color = nil)
@@ -39,7 +40,7 @@ module Reversi
       @player = (@player == Disc::WHITE ? Disc::BLACK : Disc::WHITE)
     end
 
-    def reverse(x, y, color, redraw = true)
+    def reverse(x, y, color, animation = true)
       return unless base = select(x, y)
 
       @directions.each do |offset_x, offset_y|
@@ -50,9 +51,9 @@ module Reversi
             break
           end
           d.reverse!
-          if redraw
-            @canvas.draw
-            sleep 0.5
+          if animation
+            @canvas.draw(false)
+            sleep 0.75
           end
         end
       end
@@ -84,16 +85,19 @@ module Reversi
       return false
     end
 
-    def move(x, y, color)
+    def move(x, y, color, animation = true)
       disc = select(x, y)
       raise "already exists: (#{x}, #{y})" unless disc.space?
       raise "can't move: (#{x}, #{y})" unless movable?(x, y, color)
 
+      @selected = disc
       disc.color = color
+      @canvas.draw(false) if animation
       reverse(x, y, color)
     end
 
     def select(x, y)
+      return nil if x < 0 || y < 0
       begin
         @discs[y.to_i][x.to_i]
       rescue

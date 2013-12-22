@@ -7,7 +7,7 @@ module Reversi
     WHITE_ICON = "●"
     BLACK_ICON = "◯"
     SPACE_ICON = "　"
-    MOVABLE_ICON = '[]'
+    MOVABLE_ICON = SPACE_ICON
     ICON_MAP = {SPACE => SPACE_ICON, WHITE => WHITE_ICON, BLACK => BLACK_ICON}
 
     attr_accessor :board, :x, :y, :color
@@ -53,24 +53,12 @@ module Reversi
       @color = reverse
     end
 
-    def inspect
-      "(%s, %s, %s)" % [@x, @y, @color]
-    end
-
     def self.icon(color)
       ICON_MAP[color]
     end
 
     def to_s
       self.class.icon(@color)
-    end
-
-    def to_s2
-      if exists?
-        white? ? WHITE_ICON : BLACK_ICON
-      else
-        @board.movable?(@x, @y, @board.player) ? MOVABLE_ICON :  SPACE_ICON
-      end
     end
   end
 end

@@ -7,11 +7,10 @@ module Reversi
       @board = Reversi::Board.new(options)
       @board.canvas.draw
       while (!@board.over?)
-        while (true)
-          pos = @board.canvas.gets
-          break if @board.movable?(pos[0], pos[1], @board.player)
+        while (!(@board.canvas.select && @board.movable?(@board.selected.x, @board.selected.y, @board.player)))
+          @board.canvas.draw
         end
-        @board.move(pos[0], pos[1], @board.player)
+        @board.move(@board.selected.x, @board.selected.y, @board.player)
         @board.next_player! 
         if @board.pass?
           @board.next_player! 
