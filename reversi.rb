@@ -10,8 +10,7 @@ module Reversi
       @board.draw
       while (!@board.over?)
         while (true)
-          print ":"
-          pos = STDIN.gets.strip
+          pos = @board.canvas.gets
           break if @board.movable?(pos[0], pos[1], @board.player)
         end
         @board.move(pos[0], pos[1], @board.player)
@@ -26,7 +25,7 @@ module Reversi
 
   class Board
     attr_reader :discs, :width, :height, :turn, :player
-    attr_accessor :logs
+    attr_accessor :logs, :canvas
 
     def initialize(options = {})
       options = {:width => 3, :height => 3}.merge(options)
@@ -36,6 +35,7 @@ module Reversi
       @player = Disc::WHITE
       @logs = []
       @directions = [-1, 0, 1].repeated_permutation(2).reject{|x, y| x == 0 && y == 0}
+      @canvas = Reversi::Canvas.new(self)
 
       @discs = Array.new(@height){|y| Array.new(@width){|x| Reversi::Disc.new(self, x, y) }}
       [-1, 0].repeated_permutation(2).each do |x, y|
@@ -120,18 +120,7 @@ module Reversi
     end
 
     def draw
-      border = ''
-
-      # puts "  " + (0..(@width-1)).map{|n| (97+n).chr + " "}.join("") + "\n"
-      puts "  " + border + (0..(@width-1)).map{|n| n.to_s + " "}.join(border) + border + "\n"
-      @discs.each_with_index do |line, y|
-        puts "#{y} #{border}#{line.map{|disc| disc.to_s }.join(border)}#{border}"
-      end
-
-      puts "Player: %s" % [Disc.label(@player)]
-      puts "Score : %s=%d, %s=%d" % [Disc.label(Disc::WHITE), scores[Disc::WHITE], Disc.label(Disc::BLACK), scores[Disc::BLACK]]
-      puts
-      puts @logs.join("\n")
+      @canvas.draw
     end
 
     def scores
@@ -150,7 +139,7 @@ module Reversi
     SPACE_ICON = "　"
     MOVABLE_ICON = '[]'
 
-    attr_accessor :border, :x, :y, :color
+    attr_accessor :board, :x, :y, :color
 
     def initialize(board, x, y, color = SPACE)
       @board = board
@@ -214,8 +203,66 @@ module Reversi
     end
   end
 
+  class Canvas
+    require "curses"
+    include Curses
+
+    attr_accessor :board
+
+    def initialize(board)
+      @board = board
+      init_screen
+    end
+
+    def gets
+      draw
+      line = ''
+      while (c = getch.chr) != "\n"
+        line += c
+      end
+      line
+    end
+
+    def draw
+      line = 1
+      clear
+
+      # x axis
+      setpos(line+=1, 1)
+      addstr("  " + (0..(@board.width-1)).map{|n| n.to_s + " "}.join())
+
+      # board
+      setpos(++line, 1)
+      @board.discs.each_with_index do |discs, y|
+        setpos(line += 1, 1)
+        addstr("#{y} #{discs.map{|d| d.to_s }.join()}")
+      end
+
+      # score
+      setpos(line += 2, 1)
+      addstr "Score : %s%0d, %s%0d" % [Disc.label(Disc::WHITE), @board.scores[Disc::WHITE], Disc.label(Disc::BLACK), @board.scores[Disc::BLACK]]
+      setpos(line += 1, 1)
+      addstr "Player: %s" % [Disc.label(@board.player)]
+
+      #logs
+      @board.logs.each do |log| 
+        setpos(line += 1, 1)
+        addstr log
+      end
+
+      # prompt 
+      setpos(0, 1)
+      addstr "Command: "
+
+      refresh
+    end
+  end
+
 end
 
 game = Reversi::Game.new
-game.run
+while (true)
+  game.run
+  sleep 5
+end
 exit
