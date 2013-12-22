@@ -7,7 +7,6 @@ module Reversi
     WHITE_ICON = "●"
     BLACK_ICON = "◯"
     SPACE_ICON = "　"
-    MOVABLE_ICON = SPACE_ICON
     ICON_MAP = {SPACE => SPACE_ICON, WHITE => WHITE_ICON, BLACK => BLACK_ICON}
 
     attr_accessor :board, :x, :y, :color

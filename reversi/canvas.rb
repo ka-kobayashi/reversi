@@ -50,13 +50,13 @@ module Reversi
 
 
     def draw(movable = true)
-      line = 1
+      line = 0
       clear
 
       # x axis
       attrset(color_pair(PAIR_AXIS))
       setpos(line+=1, 0)
-      addstr("  " + (0..(@board.width-1)).map{|n| n.to_s + " "}.join())
+      addstr("  " + (0..(@board.width-1)).map{|n| n < 10 ? " #{n}" : n}.join())
 
       # board
       setpos(++line, 0)
@@ -71,7 +71,7 @@ module Reversi
             addstr(d.to_s)
           elsif movable && d.movable?(@board.player)
             attrset(color_pair(PAIR_MOVABLE))
-            addstr(Disc::MOVABLE_ICON)
+            addstr(Disc::SPACE_ICON)
           else 
             attrset(color_pair(PAIR_DISC))
             addstr(d.to_s)
@@ -85,7 +85,7 @@ module Reversi
       # x axis
       setpos(line+=1, 0)
       attrset(color_pair(PAIR_AXIS))
-      addstr("  " + (0..(@board.width-1)).map{|n| n.to_s + " "}.join())
+      addstr("  " + (0..(@board.width-1)).map{|n| n < 10 ? " #{n}" : n}.join())
 
       # score
       attrset(color_pair(PAIR_INFO))
@@ -101,10 +101,6 @@ module Reversi
         setpos(line += 1, 1)
         addstr log
       end
-
-      # prompt 
-      setpos(0, 1)
-      addstr "Command: "
 
       refresh
     end

@@ -1,15 +1,14 @@
 module Reversi
   class Board
     attr_reader :discs, :width, :height, :player, :canvas
-    attr_accessor :logs, :selected
+    attr_accessor :logs, :selected, :canvas
 
     def initialize(options = {})
-      options = {:width => 8, :height => 8}.merge(options)
+      @options = options
       @width = options[:width]
       @height = options[:height]
       @logs = []
       @directions = [-1, 0, 1].repeated_permutation(2).reject{|x, y| x == 0 && y == 0}
-      @canvas = Reversi::Canvas.new(self)
       reset
     end
 
@@ -53,7 +52,7 @@ module Reversi
           d.reverse!
           if animation
             @canvas.draw(false)
-            sleep 0.75
+            sleep @options[:interval] if @options[:interval] > 0
           end
         end
       end
