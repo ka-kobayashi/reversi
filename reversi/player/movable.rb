@@ -1,10 +1,6 @@
 module Reversi
   module Player
-    class Minimax < Player::Base
-      def select(board)
-        node(board, {:recursive => 3})[0]
-      end
-
+    class Movable < Player::Base
       def configure
         @default_recursive = 3
       end

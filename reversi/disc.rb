@@ -17,6 +17,10 @@ module Reversi
       position(x,y)
     end
 
+    def dup
+      Disc.new(@board, @x.dup, @y.dup, @color.dup)
+    end
+
     def movable?(color)
       @board.movable?(@x, @y, color)
     end
@@ -43,7 +47,9 @@ module Reversi
     end
 
     def reverse
-      unless space?
+      if space?
+        SPACE
+      else
         white? ? BLACK : WHITE
       end
     end
@@ -58,6 +64,10 @@ module Reversi
 
     def to_s
       self.class.icon(@color)
+    end
+
+    def inspect
+      "(%d,%d):%s" % [@x, @y, to_s]
     end
   end
 end

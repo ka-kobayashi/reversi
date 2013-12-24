@@ -1,6 +1,6 @@
 module Reversi
   class Board
-    attr_reader :discs, :width, :height, :player, :canvas
+    attr_reader :discs, :width, :height, :player, :canvas, :turn
     attr_accessor :logs, :selected, :canvas
 
     def initialize(options = {})
@@ -12,12 +12,8 @@ module Reversi
       reset
     end
 
-    def clone
+    def dup
       Marshal.load(Marshal.dump(self))
-    end
-
-    def initialize_copy(obj)
-      # @discs = Array.new(@height){|y| Array.new(@width){|x| obj.select(x,y).clone}}
     end
 
     def reset
@@ -27,6 +23,7 @@ module Reversi
         select(@width/2 + x, @height/2 + y).color = (x+y).odd? ? Disc::WHITE : Disc::BLACK
       end
       @selected = select(0, 0)
+      @turn = 1
     end
 
     def pass?(color = nil)
@@ -44,14 +41,14 @@ module Reversi
     end
 
     def next_player
-      @player == Disc::WHITE ? Disc::BLACK : Disc::WHITE
+      (@player == Disc::WHITE) ? Disc::BLACK : Disc::WHITE
     end
 
     def next_player!
       @player = next_player
     end
 
-    def reverse(x, y, color, animation = true)
+    def reverse(x, y, color)
       return unless base = select(x, y)
 
       @directions.each do |offset_x, offset_y|
@@ -84,13 +81,23 @@ module Reversi
       if (base = select(x, y)) == nil || !base.space?
         return false
       end
-
       @directions.each do |offset_x, offset_y|
         if reversible?(base, color, {:x => offset_x, :y => offset_y})
           return true
         end
       end
       return false
+    end
+
+    def movable(player = nil)
+      player = @player unless player
+      movables = []
+      @discs.each do |line|
+        line.each do |disc|
+          movables << disc if disc.movable?(player)
+        end
+      end
+      movables
     end
 
     def move(x, y, color)
@@ -103,6 +110,11 @@ module Reversi
       @canvas.moved if @canvas
       reverse(x, y, color)
       next_player! 
+      if pass?
+        @logs << Disc.icon(@player) + " PASS"
+        next_player! 
+      end
+      @turn += 1
     end
 
     def select(x, y)

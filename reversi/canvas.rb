@@ -3,7 +3,7 @@ require "curses"
 module Reversi
   class Canvas
     include Curses
-    attr_reader :board, :options
+    attr_accessor :board, :options
 
     PAIR_DISC = 0
     PAIR_MOVABLE = 1
@@ -106,7 +106,7 @@ module Reversi
       addstr "Selected: [%d, %d]" % [@board.selected.x, @board.selected.y]
 
       #logs
-      @board.logs.each do |log| 
+      @board.logs.last(10).each do |log| 
         setpos(line += 1, 1)
         addstr log
       end

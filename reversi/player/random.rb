@@ -1,8 +1,8 @@
 module Reversi
   module Player
     class Random < Player::Base
-      def select(board)
-        selectable(board).sample
+      def evaluate(board, x, y, player, options = {})
+        rand(100)
       end
     end
   end

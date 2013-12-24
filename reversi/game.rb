@@ -8,27 +8,21 @@ module Reversi
         :white => :random, :black => :random
       }.merge(options)
       @players = {
-        Disc::WHITE => Reversi::Player.instance(options[:white]),
-        Disc::BLACK => Reversi::Player.instance(options[:black])
+        Disc::WHITE => Reversi::Player.instance(self, options[:white]),
+        Disc::BLACK => Reversi::Player.instance(self, options[:black])
       }
       @board = Reversi::Board.new(options)
       @canvas = Reversi::Canvas.new(@board, options)
       @board.canvas = @canvas
       @canvas.draw
       while (!@board.over?)
-        if @players[@board.player].human?
-          while (!(@canvas.select && @board.movable?(@board.selected.x, @board.selected.y, @board.player)))
-            @canvas.draw
-          end
-        else
-          @board.selected = @players[@board.player].select(@board.clone)
-        end
+        @board.selected = @players[@board.player].select(@board)
         @board.move(@board.selected.x, @board.selected.y, @board.player)
-        if @board.pass?
-          @board.next_player! 
-        end
-        @canvas.draw
+        @canvas.draw(@players[@board.player].human?)
+        sleep options[:interval] if options[:interval] > 0
       end
+      @board.logs << "GAME OVER."
+      @canvas.draw
     end
   end
 end
