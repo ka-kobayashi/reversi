@@ -48,6 +48,34 @@ module Reversi
       @player = next_player
     end
 
+    def fixed(player = nil)
+      player = @player unless player
+      discs = []
+      @discs.each do |line|
+        line.each do |disc|
+          discs << disc if (disc.color == player && fixed?(disc.x, disc.y))
+        end
+      end
+      discs
+    end
+
+    def fixed?(x, y)
+      (fixed_line?(x, y, -1,  0) || fixed_line?(x, y, 1, 0)) && #横
+      (fixed_line?(x, y,  0, -1) || fixed_line?(x, y, 0, 1)) && #縦
+      (fixed_line?(x, y, -1, -1) || fixed_line?(x, y, 1, 1))    #斜
+    end
+
+    def fixed_line?(x, y, offset_x, offset_y)
+      return false if (base = select(x, y)) == nil || base.space?
+
+      color = base.color
+      for i in (1..[@width, @height].max) do
+        d = base.offset(offset_x*i, offset_y*i)
+        return false unless (d == nil || d.color == color)
+      end
+      return true
+    end
+
     def reverse(x, y, color)
       return unless base = select(x, y)
 

@@ -18,6 +18,6 @@ parser.parse!(ARGV)
 game = Reversi::Game.new
 while (true)
   game.run(options)
-  sleep 5
+  sleep 3
 end
 exit

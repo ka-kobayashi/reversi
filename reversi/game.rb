@@ -5,7 +5,7 @@ module Reversi
     def run(options = {})
       options = {
         :interval => 0.2, :width => 8, :height => 8, 
-        :white => :random, :black => :random
+        :white => :random, :black => :minimax
       }.merge(options)
       @players = {
         Disc::WHITE => Reversi::Player.instance(self, options[:white]),
@@ -21,7 +21,7 @@ module Reversi
         @canvas.draw(@players[@board.player].human?)
         sleep options[:interval] if options[:interval] > 0
       end
-      @board.logs << "GAME OVER."
+      @board.logs << "GAME OVER. #{@canvas.scores}."
       @canvas.draw
     end
   end

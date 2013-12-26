@@ -7,9 +7,10 @@ module Reversi
 
     PAIR_DISC = 0
     PAIR_MOVABLE = 1
-    PAIR_SELECTED = 2
-    PAIR_AXIS = 3
-    PAIR_INFO = 4
+    PAIR_FIXED   = 2
+    PAIR_SELECTED = 3 
+    PAIR_AXIS = 4
+    PAIR_INFO = 5
 
     def initialize(board, options)
       @board = board
@@ -20,6 +21,7 @@ module Reversi
       start_color
       init_pair(PAIR_DISC,     COLOR_WHITE, COLOR_BLACK)
       init_pair(PAIR_MOVABLE,  COLOR_WHITE, COLOR_GREEN)
+      init_pair(PAIR_FIXED,    COLOR_WHITE, COLOR_BLUE)
       init_pair(PAIR_SELECTED, COLOR_WHITE, COLOR_RED)
       init_pair(PAIR_AXIS,     COLOR_BLUE,  COLOR_BLACK)
       init_pair(PAIR_INFO,     COLOR_WHITE, COLOR_BLACK)
@@ -58,7 +60,7 @@ module Reversi
       sleep @options[:interval] if @options[:interval] > 0
     end
 
-    def draw(movable = true)
+    def draw(movable = true, fixed = true)
       line = 0
       clear
 
@@ -81,6 +83,9 @@ module Reversi
           elsif movable && d.movable?(@board.player)
             attrset(color_pair(PAIR_MOVABLE))
             addstr(Disc::SPACE_ICON)
+          elsif fixed && @board.fixed?(x, y)
+            attrset(color_pair(PAIR_FIXED))
+            addstr(d.to_s)
           else 
             attrset(color_pair(PAIR_DISC))
             addstr(d.to_s)
@@ -99,7 +104,7 @@ module Reversi
       # score
       attrset(color_pair(PAIR_INFO))
       setpos(line += 2, 1)
-      addstr "Score : %s%0d, %s%0d" % [Disc::WHITE_ICON, @board.scores[Disc::WHITE], Disc::BLACK_ICON, @board.scores[Disc::BLACK]]
+      addstr "Score : %s" % [scores]
       setpos(line += 1, 1)
       addstr "Player: %s" % [Disc.icon(@board.player)]
       setpos(line += 1, 1)
@@ -112,6 +117,10 @@ module Reversi
       end
 
       refresh
+    end
+
+    def scores
+      "%s%0d, %s%0d" % [Disc::WHITE_ICON, @board.scores[Disc::WHITE], Disc::BLACK_ICON, @board.scores[Disc::BLACK]]
     end
   end
 end
