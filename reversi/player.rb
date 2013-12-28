@@ -44,7 +44,7 @@ module Reversi
           b = board.dup
           b.move(d.x, d.y, b.player)
           plans[d] = evaluate(b, d.x, d.y, board.player, options)
-          if options[:recursive] > 0 && !b.over?
+          if options[:recursive] > 0 && !b.over? 
             options[:recursive] -= 1
             plans[d] += (b.player == player ? 1 : -1) * lookup(player, b, options)[1]
           end

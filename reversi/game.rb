@@ -4,7 +4,7 @@ module Reversi
 
     def run(options = {})
       options = {
-        :interval => 0.2, :width => 8, :height => 8, 
+        :interval => 0.15, :width => 8, :height => 8, 
         :white => :random, :black => :minimax
       }.merge(options)
       @players = {
