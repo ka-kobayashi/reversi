@@ -31,7 +31,7 @@ module Reversi
         end
       end
       [-1, 0].repeated_permutation(2).each do |x, y|
-        get(@size/2+x, @size/2+y).color = (x+y).odd? ? Disc::WHITE : Disc::BLACK
+        get(@size/2+x, @size/2+y).color = (x+y).even? ? Disc::WHITE : Disc::BLACK
       end
       @selected = get(0, 0)
       stats!
@@ -57,21 +57,21 @@ module Reversi
       @player = next_player
     end
 
-    def fixed(player = @player)
-      @discs.select{|d| (d.color == player && fixed?(d))}
+    def settled(player = @player)
+      @discs.select{|d| (d.color == player && settled?(d))}
     end
 
-    def fixed?(disc)
-      return true  if disc.fixed?
+    def settled?(disc)
+      return true  if disc.settled?
       return false if disc.space?
 
-      disc.fixed =
-      (fixed_line?(disc, -1,  0) || fixed_line?(disc, 1, 0)) && #横
-      (fixed_line?(disc,  0, -1) || fixed_line?(disc, 0, 1)) && #縦
-      (fixed_line?(disc, -1, -1) || fixed_line?(disc, 1, 1))    #斜
+      disc.settled =
+      (settled_line?(disc, -1,  0) || settled_line?(disc, 1, 0)) && #横
+      (settled_line?(disc,  0, -1) || settled_line?(disc, 0, 1)) && #縦
+      (settled_line?(disc, -1, -1) || settled_line?(disc, 1, 1))    #斜
     end
 
-    def fixed_line?(base, x, y)
+    def settled_line?(base, x, y)
       return false if base.space?
 
       color = base.color
@@ -150,7 +150,7 @@ module Reversi
     def stats!
       @stats = {}
       [Disc::WHITE, Disc::BLACK].each do |player|
-        @stats[player] = {:score => scores[player], :movable => movable(player), :fixed => fixed(player)}
+        @stats[player] = {:score => scores[player], :movable => movable(player), :settled => settled(player)}
       end
     end
 

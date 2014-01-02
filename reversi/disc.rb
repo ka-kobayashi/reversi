@@ -9,9 +9,9 @@ module Reversi
     SPACE_ICON = "　"
     ICON_MAP = {SPACE => SPACE_ICON, WHITE => WHITE_ICON, BLACK => BLACK_ICON}
 
-    attr_accessor :board, :x, :y, :color, :fixed
+    attr_accessor :board, :x, :y, :color, :settled
 
-    def initialize(board, x, y, color = SPACE, fixed = false)
+    def initialize(board, x, y, color = SPACE, settled = false)
       @board = board
       @color = color
       @x = x
@@ -38,9 +38,9 @@ module Reversi
       @color == BLACK
     end
 
-    def fixed?
-      @fixed
-    end
+    def settled?
+      @settled
+      end
 
     def reverse
       if space?

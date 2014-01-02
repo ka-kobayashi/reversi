@@ -15,8 +15,5 @@ parser.on('-i', '--interval=n'){|n| options[:interval] = n.to_f}
 parser.parse!(ARGV)
 
 game = Reversi::Game.new
-while (true)
-  game.run(options)
-  sleep 3
-end
+game.run(options)
 exit
