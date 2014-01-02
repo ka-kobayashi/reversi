@@ -1,4 +1,5 @@
 REVERSI_DIR = File.expand_path('reversi', File.dirname(__FILE__)) + "/"
+require REVERSI_DIR+'logger.rb'
 require REVERSI_DIR+'disc.rb'
 require REVERSI_DIR+'canvas.rb'
 require REVERSI_DIR+'board.rb'

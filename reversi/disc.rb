@@ -40,7 +40,7 @@ module Reversi
 
     def fixed?
       @fixed
-      end
+    end
 
     def reverse
       if space?

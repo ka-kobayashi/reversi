@@ -2,10 +2,12 @@ module Reversi
   class Board
     attr_accessor :size, :discs, :player, :logs, :selected, :canvas, :stats
     @@directions = [-1, 0, 1].repeated_permutation(2).reject{|x, y| x == 0 && y == 0}
+    @@offset_corners = []
 
     def initialize(options = {})
       @options = options
       @size = options[:size]
+      @@offset_corners = [0, @size-1].repeated_permutation(2).map{|x, y| [x, y]}
       @logs = []
     end
 
@@ -13,14 +15,18 @@ module Reversi
       @@directions
     end
 
-    def initialize_copy(base)
-      @discs = Array.new(@size*@size)
-      for i in (0..(@size*@size-1)) do
-        @discs[i] = base.discs[i].dup
-        @discs[i].board = self
-      end
-      @logs = []
+    def dup
+      Marshal.load(Marshal.dump(self))
     end
+
+   # def initialize_copy(base)
+     # @discs = Array.new(@size*@size)
+     # for i in (0..(@size*@size-1)) do
+       # @discs[i] = base.discs[i].dup
+       # @discs[i].board = self
+     # end
+     # @logs = []
+   # end
 
     def reset!
       @player = Disc::WHITE
@@ -57,21 +63,30 @@ module Reversi
       @player = next_player
     end
 
-    def settled(player = @player)
-      @discs.select{|d| (d.color == player && settled?(d))}
+    def fixed(player = @player)
+      @discs.select{|d| (d.color == player && fixed?(d))}
     end
 
-    def settled?(disc)
-      return true  if disc.settled?
+    def fixed!
+      corners = nil
+      @@offset_corners.map do |x, y|
+        unless get(x, y).space?
+          has_corner
+        end
+      end
+    end
+
+    def fixed?(disc)
+      return true  if disc.fixed?
       return false if disc.space?
 
-      disc.settled =
-      (settled_line?(disc, -1,  0) || settled_line?(disc, 1, 0)) && #横
-      (settled_line?(disc,  0, -1) || settled_line?(disc, 0, 1)) && #縦
-      (settled_line?(disc, -1, -1) || settled_line?(disc, 1, 1))    #斜
+      # disc.fixed =
+      (fixed_line?(disc, -1,  0) || fixed_line?(disc, 1, 0)) && #横
+      (fixed_line?(disc,  0, -1) || fixed_line?(disc, 0, 1)) && #縦
+      (fixed_line?(disc, -1, -1) || fixed_line?(disc, 1, 1))    #斜
     end
 
-    def settled_line?(base, x, y)
+    def fixed_line?(base, x, y)
       return false if base.space?
 
       color = base.color
@@ -91,7 +106,7 @@ module Reversi
             break
           end
           d.reverse!
-          @canvas.reversed if @canvas
+          @canvas.reversed(self) if @canvas
         end
       end
     end
@@ -128,7 +143,7 @@ module Reversi
       disc = get(disc.x, disc.y)
       @selected = disc
       disc.color = player
-      @canvas.moved if @canvas
+      @canvas.moved(self) if @canvas
       reverse(disc, player)
       stats!
       next_player! 
@@ -150,7 +165,7 @@ module Reversi
     def stats!
       @stats = {}
       [Disc::WHITE, Disc::BLACK].each do |player|
-        @stats[player] = {:score => scores[player], :movable => movable(player), :settled => settled(player)}
+        @stats[player] = {:score => scores[player], :movable => movable(player), :fixed => fixed(player)}
       end
     end
 
