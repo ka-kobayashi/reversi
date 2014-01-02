@@ -7,7 +7,7 @@ module Reversi
 
     PAIR_DISC = 0
     PAIR_MOVABLE = 1
-    PAIR_SETTLED   = 2
+    PAIR_FIXED   = 2
     PAIR_SELECTED = 3 
     PAIR_AXIS = 4
     PAIR_INFO = 5
@@ -21,7 +21,7 @@ module Reversi
       start_color
       init_pair(PAIR_DISC,     COLOR_WHITE, COLOR_BLACK)
       init_pair(PAIR_MOVABLE,  COLOR_WHITE, COLOR_GREEN)
-      init_pair(PAIR_SETTLED,    COLOR_WHITE, COLOR_BLUE)
+      init_pair(PAIR_FIXED,    COLOR_WHITE, COLOR_BLUE)
       init_pair(PAIR_SELECTED, COLOR_WHITE, COLOR_RED)
       init_pair(PAIR_AXIS,     COLOR_BLUE,  COLOR_BLACK)
       init_pair(PAIR_INFO,     COLOR_WHITE, COLOR_BLACK)
@@ -60,7 +60,7 @@ module Reversi
       sleep @options[:interval] if @options[:interval] > 0
     end
 
-    def draw(movable = true, settled = true)
+    def draw(movable = true, fixed = true)
       line = 0
       clear
 
@@ -83,8 +83,8 @@ module Reversi
           attrset(color_pair(PAIR_SELECTED))
         elsif movable && d.movable?(@board.player)
           attrset(color_pair(PAIR_MOVABLE))
-        elsif settled && @board.settled?(d)
-          attrset(color_pair(PAIR_SETTLED))
+        elsif fixed && @board.fixed?(d)
+          attrset(color_pair(PAIR_FIXED))
         else 
           attrset(color_pair(PAIR_DISC))
         end
