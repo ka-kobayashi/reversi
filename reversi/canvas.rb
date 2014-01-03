@@ -1,9 +1,8 @@
 require "curses"
 
-
-
 module Reversi
   class UndoException  < Exception; end
+  class SaveException  < Exception; end
 
   class Canvas
     include Curses
@@ -55,6 +54,8 @@ module Reversi
           return false
         when 'u', 27 # ESC
           raise UndoException
+        when 's'
+          raise SaveException
       end
       return true
     end

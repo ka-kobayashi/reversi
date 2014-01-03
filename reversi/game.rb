@@ -3,11 +3,32 @@ module Reversi
     include Reversi::Logger
     attr_reader :board, :canvas, :players, :history
 
+    def load(filename)
+      if data = File.open(filename).read
+        return Marshal.load(data)
+      end
+      nil
+    end
+
+    def save(board, filename = nil)
+      filename = "%s/data/%s.dat" % [REVERSI_DIR, Time.now.strftime("%Y%m%d_%H%M%S")]
+      file = File.open(filename, 'w+')
+      file.puts Marshal.dump(board)
+      file.close
+      filename
+    end
+
     def run(options = {})
       options = {
-        :interval => 0.15, :size => 8, :white => :random, :black => :minimax
+        :interval => 0.15, :size => 8, :load => nil,
+        :white => :random, :black => :minimax
       }.merge(options)
-      @board = Board.new(options).reset!
+
+      if options[:load] 
+        @board = load(options[:load])
+      else
+        @board = Board.new(options).reset!
+      end
       @canvas = Canvas.new(options)
       @players = {
         Disc::WHITE => Player.instance(Disc::WHITE, self, options[:white]),
@@ -26,6 +47,10 @@ module Reversi
             @board.selected = @board.get(0, 0)
             @board.logs << "Undo"
           end
+          @canvas.draw(@board)
+          retry
+        rescue SaveException
+          @board.logs << "Saved: #{save(@board)}"
           @canvas.draw(@board)
           retry
         end

@@ -21,7 +21,7 @@ module Reversi
       @@instance = ::Logger.new(file)
       @@instance.level = level
       @@instance.formatter = proc{|severity, datetime, progname, message|
-        "["+datetime.strftime("%Y-%m-%d %H:%M:%S")+"][#{"#%05d" % $$}][#{severity[0..0]}] #{message}\n"
+        "["+datetime.strftime("%Y-%m-%d %H:%M:%S")+"][#{severity[0..0]}] #{message}\n"
       }
       return @@instance
     end
