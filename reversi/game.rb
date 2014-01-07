@@ -11,7 +11,7 @@ module Reversi
     end
 
     def save(board, filename = nil)
-      filename = "%s/data/%s.dat" % [REVERSI_DIR, Time.now.strftime("%Y%m%d_%H%M%S")]
+      filename = "%s/data/%s.dat" % [REVERSI_DIR, Time.now.to_i]
       file = File.open(filename, 'w+')
       file.puts Marshal.dump(board)
       file.close
@@ -26,14 +26,15 @@ module Reversi
 
       if options[:load] 
         @board = load(options[:load])
+        options[:size] = @board.size
       else
         @board = Board.new(options).reset!
       end
-      @canvas = Canvas.new(options)
       @players = {
         Disc::WHITE => Player.instance(Disc::WHITE, self, options[:white]),
         Disc::BLACK => Player.instance(Disc::BLACK, self, options[:black])
       }
+      @canvas = Canvas.new(options)
       @board.canvas = @canvas
       @canvas.draw(@board)
       @history = []
