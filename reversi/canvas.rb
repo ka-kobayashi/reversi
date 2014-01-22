@@ -113,9 +113,9 @@ module Reversi
       # score
       attrset(color_pair(PAIR_INFO))
       setpos(line += 2, 1)
-      addstr "Score : %s" % [scores(board)]
+      addstr "Player: %s%s %s%s" % [Disc.icon(Disc::WHITE), @options[:white], Disc.icon(Disc::BLACK), @options[:black]]
       setpos(line += 1, 1)
-      addstr "Player: %s" % [Disc.icon(board.player)]
+      addstr "Score : %s  Turn: %s" % [scores(board), Disc.icon(board.player)]
       setpos(line += 1, 1)
       addstr "Selected: [%d, %d]" % [board.selected.x, board.selected.y] if board.selected
 
