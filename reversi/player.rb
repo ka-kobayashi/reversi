@@ -1,4 +1,5 @@
 require 'benchmark'
+require 'thread'
 
 module Reversi
   module Player
@@ -36,19 +37,35 @@ module Reversi
         @game.board.logs << message
       end
 
-      def select(board)
+      # Reversi::Game から呼び出され、引数で与えられた局面(board)から一手選択し返す。
+      def select(board, timeout = 5)
         board = board.dup
         board.canvas = nil
         ret = [nil, 0] #[disc, evaluation]
         @evaluation = 0
-        @@realtime[@mycolor] += Benchmark.realtime {
-          ret = lookup(0, board)
+        realtime = Benchmark.realtime {
+          thinker = Thread.new do
+            ret = lookup(0, board)
+          end
+          killer = Thread.new(thinker, timeout) do |thinker, timeout|
+            sleep timeout
+            Thread::kill(thinker) if thinker.alive?
+          end
+          thinker.join
+
+          #選択されなかったとき or Timeout したときは、ランダムで選択
+          if ret[0] == nil 
+            trace "%s: Timeouted" % [Disc.icon(board.player)]
+            ret = [board.movable.sample(1).shift, 0]
+          end
         }
+        @@realtime[@mycolor] += realtime
         @@evaluation[@mycolor] += @evaluation
-        trace "%s: (%d, %d) %5dpt (%5d, %4.2fms)" % [Disc.icon(board.player), ret[0].x, ret[0].y, ret[1], @evaluation, (@@realtime[@mycolor]*1000)/@@evaluation[@mycolor]]
+        trace "%s: (%d, %d) %5dpt %2.1fs (%5d, %2.2fs)" % [Disc.icon(board.player), ret[0].x, ret[0].y, ret[1], realtime, @evaluation, (@@realtime[@mycolor]*1000)/@@evaluation[@mycolor]]
         ret[0]
       end
 
+      # base_board を基点に探索を行う。探索の深さは @max_depth で指定する。
       def lookup(depth, base_board, options = {})
         plans = {}
         base_board.movable.each do |disc|

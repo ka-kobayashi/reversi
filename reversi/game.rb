@@ -20,7 +20,7 @@ module Reversi
 
     def run(options = {})
       options = {
-        :interval => 0.15, :size => 8, :load => nil,
+        :interval => 0.15, :size => 8, :load => nil, :timeout => 5,
         :white => :random, :black => :minimax
       }.merge(options)
 
@@ -41,7 +41,7 @@ module Reversi
       while (!@board.over?)
         begin
           @history << @board.dup
-          @board.selected = @players[@board.player].select(@board)
+          @board.selected = @players[@board.player].select(@board, options[:timeout])
         rescue UndoException
           if @history.size >= 3
             @board = @history.slice!(-3..-1)[0]
