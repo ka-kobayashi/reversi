@@ -186,6 +186,14 @@ module Reversi
       @stats[player][:score]
     end
 
+    def winner
+      white = score(Disc::WHITE)
+      black = score(Disc::BLACK)
+
+      return nil if (white == black)
+      return white > black ? Disc::WHITE : Disc::BLACK;
+    end
+
     def winner?(player = @player)
       score(player) > score(next_player(player))
     end

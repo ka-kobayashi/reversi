@@ -55,7 +55,7 @@ module Reversi
 
           #選択されなかったとき or Timeout したときは、ランダムで選択
           if ret[0] == nil 
-            trace "%s: Timeouted" % [Disc.icon(board.player)]
+            trace "%s: Timeouted (%s)" % [Disc.icon(board.player), timeout]
             ret = [board.movable.sample(1).shift, 0]
           end
         }

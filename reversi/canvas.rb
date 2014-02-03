@@ -126,6 +126,7 @@ module Reversi
         setpos(line += 1, 1)
         addstr log
       end
+      addstr "\n"
 
       refresh
     end

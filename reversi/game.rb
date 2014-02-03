@@ -20,10 +20,33 @@ module Reversi
 
     def run(options = {})
       options = {
-        :interval => 0.15, :size => 8, :load => nil, :timeout => 5,
+        :interval => 0.15, :size => 8, :load => nil, :timeout => 5, :match => 3,
         :white => :random, :black => :minimax
       }.merge(options)
 
+      score = {Disc::WHITE => 0, Disc::BLACK => 0}
+      while true do
+        winner = match(options)
+        sleep 1
+
+        if winner
+          p score
+          score[winner] += 1
+          break if options[:match] == score[winner]
+        end
+      end
+
+      puts "\n\n"
+      if score[Disc::WHITE] == score[Disc::BLACK]
+        puts "DRAW - White : Black = %s : %s" % [score[Disc::WHITE], score[Disc::BLACK]]
+      elsif score[Disc::WHITE] > score[Disc::BLACK]
+        puts "Winner is WHITE - White : Black = %s : %s" % [score[Disc::WHITE], score[Disc::BLACK]]
+      else 
+        puts "Winner is BLACK - White : Black = %s : %s" % [score[Disc::WHITE], score[Disc::BLACK]]
+      end
+    end
+
+    def match(options) 
       if options[:load] 
         @board = load(options[:load])
         options[:size] = @board.size
@@ -61,6 +84,8 @@ module Reversi
       end
       @board.logs << "GAME OVER. #{@canvas.scores(@board)}."
       @canvas.draw(@board)
+
+      return @board.winner
     end
   end
 end

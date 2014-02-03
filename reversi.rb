@@ -14,7 +14,8 @@ parser.on('-w', '--white=[name]'){|name| options[:white] = name}
 parser.on('-b', '--black=[name]'){|name| options[:black] = name}
 parser.on('-i', '--interval=n'){|n| options[:interval] = n.to_f}
 parser.on('-l', '--load=file'){|file| options[:load] = file}
-parser.on('-t', '--timeout=[sec]'){|sec| options[:timeout] = sec}
+parser.on('-t', '--timeout=[sec]'){|sec| options[:timeout] = sec.to_i}
+parser.on('-m', '--match=[times]'){|times| options[:match] = times.to_i}
 parser.parse!(ARGV)
 
 game = Reversi::Game.new
