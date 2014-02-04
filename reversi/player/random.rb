@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module Reversi
   module Player
     class Random < Player::Base

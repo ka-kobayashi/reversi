@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require "curses"
 
 module Reversi
@@ -14,9 +15,6 @@ module Reversi
     PAIR_SELECTED = 3 
     PAIR_AXIS = 4
     PAIR_INFO = 5
-
-    UNDO = ''
-    ENTER = ''
 
     def initialize(options)
       @options = {:interval => 0.5}.merge(options)

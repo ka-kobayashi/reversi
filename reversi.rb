@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 REVERSI_DIR = File.expand_path('.', File.dirname(__FILE__))
 require REVERSI_DIR+'/reversi/logger.rb'
 require REVERSI_DIR+'/reversi/disc.rb'

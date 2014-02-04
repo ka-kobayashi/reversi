@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module Reversi
   class Disc
     SPACE = 0
