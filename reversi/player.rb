@@ -72,8 +72,8 @@ module Reversi
         base_board.movable.each do |disc|
           board = base_board.dup
           board.move(disc, board.player)
-          @evaluation += 1
           plans[disc] = evaluate(disc, board, base_board, options)
+          @evaluation += 1
           if depth < @max_depth && !board.over? 
             plans[disc] += (board.player == @mycolor ? 1 : -1) * lookup(depth+1, board, options)[1]
           end

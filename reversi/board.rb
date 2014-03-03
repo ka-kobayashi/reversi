@@ -105,7 +105,7 @@ module Reversi
         next unless reversible?(base, color, {:x => x, :y => y})
         for i in (1..@size) do
           d = base.offset(x*i, y*i)
-          logger.trace("%s: %s (%d,%d)" % [base, d, x*i, y*i])
+          # logger.trace("%s: %s (%d,%d)" % [base, d, x*i, y*i])
           if (d == nil || d.space? || d.color == color)
             break
           end
