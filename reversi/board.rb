@@ -5,22 +5,16 @@ module Reversi
 
     attr_accessor :size, :discs, :player, :logs, :selected, :canvas, :stats
     @@directions = [-1, 0, 1].repeated_permutation(2).reject{|x, y| x == 0 && y == 0}
-    @@offset_corners = []
 
     def initialize(options = {})
       @options = options
       @size = options[:size]
-      @@offset_corners = [0, @size-1].repeated_permutation(2).map{|x, y| [x, y]}
       @logs = []
     end
 
     def directions
       @@directions
     end
-
-    # def dup
-    #   Marshal.load(Marshal.dump(self))
-    # end
 
     def initialize_copy(base)
       @discs = Array.new(@size*@size)
@@ -70,20 +64,11 @@ module Reversi
       @discs.select{|d| (d.color == player && fixed?(d))}
     end
 
-    def fixed!
-      corners = nil
-      @@offset_corners.map do |x, y|
-        unless get(x, y).space?
-          has_corner
-        end
-      end
-    end
-
     def fixed?(disc)
       return true  if disc.fixed?
       return false if disc.space?
 
-      # disc.fixed =
+      disc.fixed =
       (fixed_line?(disc, -1,  0) || fixed_line?(disc, 1, 0)) && #横
       (fixed_line?(disc,  0, -1) || fixed_line?(disc, 0, 1)) && #縦
       (fixed_line?(disc, -1, -1) || fixed_line?(disc, 1, 1))    #斜
@@ -158,12 +143,13 @@ module Reversi
     end
 
     def get(x, y)
-      return nil if x < 0 || y < 0
-      begin
-        @discs[x + y*@size]
-      rescue
-        nil
+      if (x < 0 || x >= @size) 
+        return nil
       end
+      if (y < 0 || y >= @size) 
+        return nil
+      end
+      @discs[x + y*@size]
     end
 
     def stats!

@@ -24,12 +24,11 @@ module Reversi
     end
 
     def offset(x, y)
-      return nil unless (@x+x).between?(0, @board.size-1) && (@y+y).between?(0, @board.size-1) 
       @board.get(@x+x, @y+y)
     end
 
     def space?
-      !(white? || black?)
+      @color == SPACE
     end
 
     def white?

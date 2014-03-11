@@ -13,7 +13,7 @@ module Reversi
         threads = {}
         base_board.movable.each do |disc|
           threads[disc] = Thread.new do
-            logger.trace "new lookup thread for #{disc}"
+            # logger.trace "new lookup thread for #{disc}"
             board = base_board.dup
             board.move(disc, board.player)
             plans[disc] = evaluate(disc, board, base_board, options)
@@ -24,7 +24,7 @@ module Reversi
           end
         end
         threads.each_pair do |disc, t|
-          logger.trace "join lookup thread for #{disc}"
+          # logger.trace "join lookup thread for #{disc}"
           t.join
         end
         return [nil, 0] if plans.size < 1
