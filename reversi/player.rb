@@ -62,26 +62,33 @@ module Reversi
         }
         @@realtime[@mycolor] += realtime
         @@evaluation[@mycolor] += @evaluation
-        trace "%s: (%d, %d) %5dpt %2.1fs (%5d, %2.2fs)" % [Disc.icon(board.player), ret[0].x, ret[0].y, ret[1], realtime, @evaluation, (@@realtime[@mycolor]*1000)/@@evaluation[@mycolor]]
+        trace "%s: (%d, %d) %5dpt %2.1fs (%5d, %2.2fms)" % [Disc.icon(board.player), ret[0].x, ret[0].y, ret[1], realtime, @evaluation, (@@realtime[@mycolor]*1000)/@@evaluation[@mycolor]]
         ret[0]
       end
 
-      # base_board を基点に探索を行う。探索の深さは @max_depth で指定する。
-      def lookup(depth, base_board, options = {})
-        plans = {}
-        base_board.movable.each do |disc|
-          board = base_board.dup
-          board.move(disc, board.player)
-          plans[disc] = evaluate(disc, board, base_board, options)
-          @evaluation += 1
-          if depth < @max_depth && !board.over? 
-            plans[disc] += (board.player == @mycolor ? 1 : -1) * lookup(depth+1, board, options)[1]
-          end
+      # board を基点に探索を行う。探索の深さは @max_depth で指定する。
+      def lookup(depth, board, options = {})
+        # これ以上探索しない場合は、現在の局面を評価値として返す。
+        if depth >= @max_depth || board.over?
+          return [nil, evaluate(options[:moved], board, board, options)]
         end
-        return [nil, 0] if plans.size < 1
 
-        disc = plans.max{|a,b| a[1] <=> b[1]}[0]
-        return [disc, plans[disc]]
+        # 現在の選択可能な打ち手について、子ノードの評価値を求める。
+        plans = {}
+        board.movable.each do |disc|
+          new_board = board.dup
+          new_board.move(disc, board.player)
+          @evaluation += 1
+          plans[disc] = lookup(depth+1, new_board, options.merge({:moved => disc}))[1]
+        end
+
+        # 子ノードの評価値のうち、最も有効となる手を選択肢、ノードの評価値として返す。
+        if board.player == @mycolor
+          disc = plans.min{|a,b| a[1] <=> b[1]}[0]
+        else
+          disc = plans.max{|a,b| a[1] <=> b[1]}[0]
+        end
+        return [disc, plans[disc]] #打ち手 と 評価値を返す。
       end
 
       def evaluate(disc, board, base_board, options = {})

@@ -21,7 +21,7 @@ module Reversi
 
     def run(options = {})
       options = {
-        :interval => 0.15, :size => 8, :load => nil, :timeout => 5, :match => 3,
+        :interval => 0.1, :size => 8, :load => nil, :timeout => 5, :match => 3,
         :white => :random, :black => :minimax
       }.merge(options)
 

@@ -98,6 +98,7 @@ module Reversi
           @canvas.reversed(self) if @canvas
         end
       end
+      self
     end
 
     def reversible?(base, color, offset)
@@ -140,6 +141,7 @@ module Reversi
         @logs << Disc.icon(@player) + ": PASS"
         next_player! 
       end
+      self
     end
 
     def get(x, y)
