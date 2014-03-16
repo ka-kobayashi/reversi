@@ -1,59 +1,122 @@
 # -*- coding: utf-8 -*-
 module Reversi
   module Player
-    class Kobayashi < Player::Base
-      def configure
-        @max_depth = 2
-        initialize_point_score
+
+    class Node
+      attr_accessor :disc, :score
+      def initialize(disc, score)
+        self.disc = disc
+        self.score = score
       end
 
+      def to_a
+        [@disc, @score]
+      end
+    end
+
+
+    class Kobayashi < Player::Base
+      MAX_SCORE =  2147483647
+      MIN_SCORE = -2147483647
+
+      def configure
+        @max_depth = 3
+        initialize_point_score
+        @debug = true
+      end
+
+
+
+      #                       Ｒ                         先手の局面(0)
+      #                     ／  ＼
+      #                   ／      ＼
+      #                 ／          ＼
+      #               ／              ＼
+      #             ／                  ＼
+      #           Ａ(3)                   Ｂ(2)          後手の局面(1)
+      #         ／  ＼                  ／  ×
+      #       ／      ＼              ／      ×
+      #     Ｃ(3)       Ｄ(4)       Ｅ(2)       Ｆ(5)     先手の局面(2)
+      #   ／  ＼      ／  ×       ／  ＼      ／  ＼
+      # Ｇ      Ｈ  Ｉ      Ｊ   Ｋ     Ｌ  Ｍ      Ｎ     後手の局面(3)
+      # １      ３  ４      ２   ２     １  ３      ５     評価値
+      #                    ×               ×      ×
+
       def lookup(depth, board, options = {})
-        # これ以上探索しない場合は、現在の局面を評価値として返す。
-        if board.over?
-          return [nil, board.player == @mycolor ? 2147483647 : -2147483647]
-        end
-        if depth > @max_depth
-          return [nil, evaluate(options[:moved], board, board, options)]
+        alphabeta(depth, nil, board, nil, Node.new(nil, MIN_SCORE), Node.new(nil, MAX_SCORE), options).to_a
+      end
+
+      def alphabeta(depth, disc, board, base_board, alpha, beta, options = {})
+        if depth == @max_depth || board.over?
+          return Node.new(disc, evaluate(disc, board, base_board, options))
         end
 
-        # 現在の選択可能な打ち手について、子ノードの評価値を求める。
-        plans = {}
         board.movable.each do |disc|
+          @evaluation += 1
           new_board = board.dup
           new_board.move(disc, board.player)
-          @evaluation += 1
-          plans[disc] = lookup(depth+1, new_board, options.merge({:moved => disc}))[1]
-        end
+          node = Node.new(disc, alphabeta(depth + 1, disc, new_board, board, alpha, beta, options).score)
 
-        # 子ノードの評価値のうち、最も有効となる手を選択肢、ノードの評価値として返す。
-        if board.player == @mycolor
-          disc = plans.min{|a,b| a[1] <=> b[1]}[0]
-        else
-          disc = plans.max{|a,b| a[1] <=> b[1]}[0]
+          if board.player == @mycolor
+            if node.score > alpha.score
+              alpha = node
+            end
+            if alpha.score >= beta.score
+              return beta
+            end
+          else
+            if node.score < beta.score
+              beta = node
+            end
+            if alpha.score >= beta.score
+              return alpha
+            end
+          end
         end
-        return [disc, plans[disc]] #打ち手 と 評価値を返す。
+        return board.player == @mycolor ? alpha : beta
       end
 
       def evaluate(disc, board, base_board, options = {})
+        # 終局した場合、勝敗でスコアを返す。
+        if board.over?
+          return (board.winner?(@mycolor) ? MAX_SCORE : MIN_SCORE)
+        end
+
         player = board.player
         stats = [base_board.stats(player), board.stats(player)]
+
         if @debug
           trace("%s: (%d, %d) - score=%d, movable=%d, fixed=%d" % [
-            Disc.icon(player), disc.x, disc.y,
-            stats[1][:score] - stats[0][:score],
-            stats[1][:movable].size,
-            stats[1][:fixed].size - stats[0][:fixed].size])
+              Disc.icon(player), disc.x, disc.y,
+              stats[1][:score] - stats[0][:score],
+              stats[1][:movable].size,
+              stats[1][:fixed].size - stats[0][:fixed].size])
         end
 
         valuation  = 0
-        valuation += (stats[1][:movable].size) * 25
+        if opening?(board)
+          valuation += (stats[1][:score].size - stats[0][:score].size) * -50
+        end
+        valuation += (stats[1][:movable].size) * 5
         valuation += (stats[1][:fixed].size - stats[0][:fixed].size) * 500
-        valuation += point_score(disc) * 50
-        return valuation
+        valuation += point_score(disc) * 100
       end
 
+      def progress(board)
+        (board.stats(Disc::WHITE)[:score] + board.stats(Disc::BLACK)[:score]) / (board.size * board.size)
+      end
+
+      def opening?(board)
+        progress(board) < 0.3
+      end
+
+      def closing?(board)
+        progress(board) > 0.7
+      end
+
+
       def point_score(disc)
-        @point_score[disc.x][disc.y]
+        disc ? @point_score[disc.x][disc.y] : 0
       end
 
       def initialize_point_score()
@@ -81,14 +144,14 @@ module Reversi
         # 辺の内側
         (0..(@size-1)).each do |x|
           (0..(@size-1)).each do |y|
-            if ((x == 1 || y == 1 || x == (@size - 1) || y == (@size - 1)) && @point_score[x][y] == -1)
+            if (x == 1 || y == 1 || x == (@size - 1) || y == (@size - 1)) && @point_score[x][y] == -1
               @point_score[x][y] = -3
             end
           end
         end
 
         # デバッグ
-        (0..(@size-1)).each{|x| (0..(@size-1)).each{|y| print "%04s" % [@point_score[x][y]]}; print "\n" }
+        #(0..(@size-1)).each{|x| (0..(@size-1)).each{|y| print "%04s" % [@point_score[x][y]]}; print "\n" }
       end
     end
   end

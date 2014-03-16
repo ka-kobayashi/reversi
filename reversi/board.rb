@@ -61,7 +61,7 @@ module Reversi
     end
 
     def fixed(player = @player)
-      @discs.select{|d| (d.color == player && fixed?(d))}
+      @discs.select{|d| (d.color == player && d.fixed?)}
     end
 
     def fixed?(disc)
