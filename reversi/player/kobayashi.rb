@@ -26,7 +26,6 @@ module Reversi
       end
 
 
-
       #                       Ｒ                         先手の局面(0)
       #                     ／  ＼
       #                   ／      ＼
@@ -43,12 +42,13 @@ module Reversi
       #                    ×               ×      ×
 
       def lookup(depth, board, options = {})
+        logger.debug("---------------------------") if @debug
         alphabeta(depth, nil, board, nil, Node.new(nil, MIN_SCORE), Node.new(nil, MAX_SCORE), options).to_a
       end
 
-      def alphabeta(depth, disc, board, base_board, alpha, beta, options = {})
+      def alphabeta(depth, moved_disc, board, base_board, alpha, beta, options = {})
         if depth == @max_depth || board.over?
-          return Node.new(disc, evaluate(disc, board, base_board, options))
+          return Node.new(moved_disc, evaluate(moved_disc, board, base_board, {:depth => depth}))
         end
 
         board.movable.each do |disc|
@@ -76,30 +76,53 @@ module Reversi
         return board.player == @mycolor ? alpha : beta
       end
 
+
       def evaluate(disc, board, base_board, options = {})
         # 終局した場合、勝敗でスコアを返す。
         if board.over?
           return (board.winner?(@mycolor) ? MAX_SCORE : MIN_SCORE)
         end
 
-        player = board.player
-        stats = [base_board.stats(player), board.stats(player)]
+        #初期化
+        valuation = score = movable = fixed = point = 0
+
+        # 盤面の状況
+        stats = {Disc::WHITE => board.stats(Disc::WHITE), Disc::BLACK => board.stats(Disc::BLACK)}
+
+        # 自分の確定石が過半数であったら勝利確定
+        if stats[@mycolor][:fixed].size >= board.size*board.size
+          valuation += 10000
+        elsif stats[enemy][:fixed].size >= board.size*board.size
+          valuation -= 10000
+        end
+
+        [Disc::WHITE, Disc::BLACK].each do |c|
+          score   += (c == @mycolor ? 1 : -1) * stats[c][:score]
+          movable += (c == @mycolor ? 1 : -1) * stats[c][:movable].size * 50
+          fixed   += (c == @mycolor ? 1 : -1) * stats[c][:fixed].size   * 500
+        end
+        point = point_score(disc) * (opening?(board) ? 50 : 25)
+
+        #パスさせられるなら高得点
+        if stats[enemy][:movable].size == 0
+          movable += 5000
+        end
+
+        valuation = score + movable + fixed + point + Random.new(Time.now.to_i).rand(100)
 
         if @debug
-          trace("%s: (%d, %d) - score=%d, movable=%d, fixed=%d" % [
-              Disc.icon(player), disc.x, disc.y,
-              stats[1][:score] - stats[0][:score],
-              stats[1][:movable].size,
-              stats[1][:fixed].size - stats[0][:fixed].size])
+          logger.trace('%s: (%d, %d) [%d] total=%d, score=%d, movable=%d, fixed=%d, point=%d, WHITE=%s, BLACK=%s' % [
+              Disc.icon(@mycolor), disc.x, disc.y, options[:depth], valuation,
+              score, movable, fixed, point,
+              inspect_socre(stats[Disc::WHITE]), inspect_socre(stats[Disc::BLACK])
+          ])
         end
 
-        valuation  = 0
-        if opening?(board)
-          valuation += (stats[1][:score].size - stats[0][:score].size) * -50
-        end
-        valuation += (stats[1][:movable].size) * 5
-        valuation += (stats[1][:fixed].size - stats[0][:fixed].size) * 500
-        valuation += point_score(disc) * 100
+        return valuation
+      end
+
+      def inspect_socre(stats)
+        '[s:%d, m:%d, f:%d]' % [stats[:score], stats[:movable].size, stats[:fixed].size]
       end
 
       def progress(board)
@@ -111,7 +134,7 @@ module Reversi
       end
 
       def closing?(board)
-        progress(board) > 0.7
+        progress(board) > 0.8
       end
 
 
