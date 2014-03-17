@@ -69,9 +69,10 @@ module Reversi
       return false if disc.space?
 
       disc.fixed =
-      (fixed_line?(disc, -1,  0) || fixed_line?(disc, 1, 0)) && #横
-      (fixed_line?(disc,  0, -1) || fixed_line?(disc, 0, 1)) && #縦
-      (fixed_line?(disc, -1, -1) || fixed_line?(disc, 1, 1))    #斜
+      (fixed_line?(disc, -1,  0) || fixed_line?(disc, 1,  0)) && #横
+      (fixed_line?(disc,  0, -1) || fixed_line?(disc, 0,  1)) && #縦
+      (fixed_line?(disc, -1,  1) || fixed_line?(disc, 1, -1)) && #斜
+      (fixed_line?(disc, -1, -1) || fixed_line?(disc, 1,  1))    #斜
     end
 
     def fixed_line?(base, x, y)
