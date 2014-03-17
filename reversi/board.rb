@@ -61,7 +61,7 @@ module Reversi
     end
 
     def fixed(player = @player)
-      @discs.select{|d| (d.color == player && d.fixed?)}
+      @discs.select{|d| (d.color == player && fixed?(d))}
     end
 
     def fixed?(disc)
@@ -183,7 +183,7 @@ module Reversi
       black = score(Disc::BLACK)
 
       return nil if (white == black)
-      return white > black ? Disc::WHITE : Disc::BLACK;
+      return white > black ? Disc::WHITE : Disc::BLACK
     end
 
     def winner?(player = @player)

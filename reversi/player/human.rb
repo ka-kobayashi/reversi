@@ -6,6 +6,7 @@ module Reversi
         while (@game.canvas.select(board))
           @game.canvas.draw(board)
         end
+        trace '%s: (%d, %d)' % [Disc.icon(board.player), board.selected.x, board.selected.y]
         board.selected
       end
     end

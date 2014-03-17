@@ -113,7 +113,7 @@ module Reversi
       # score
       attrset(color_pair(PAIR_INFO))
       setpos(line += 2, 1)
-      addstr "Player: %s%s %s%s" % [Disc.icon(Disc::WHITE), @options[:white]+(@options[:first_player] == Disc::WHITE ? '[先]' : '[後]'), Disc.icon(Disc::BLACK), @options[:black]+(@options[:first_player] == Disc::BLACK ? '[先]' : '[後]')]
+      addstr "Player: %s%s %s%s" % [Disc.icon(Disc::WHITE), @options[:white].to_s+(@options[:first_player] == Disc::WHITE ? '[先]' : '[後]'), Disc.icon(Disc::BLACK), @options[:black].to_s+(@options[:first_player] == Disc::BLACK ? '[先]' : '[後]')]
       setpos(line += 1, 1)
       addstr "Score : %s  Turn: %s" % [scores(board), Disc.icon(board.player)]
       setpos(line += 1, 1)

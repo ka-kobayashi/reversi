@@ -30,6 +30,10 @@ module Reversi
       def configure
       end
 
+      def enemy
+        Disc::WHITE == @mycolor ? Disc::BLACK : Disc::WHITE
+      end
+
       def human?
         @name == "human"
       end
