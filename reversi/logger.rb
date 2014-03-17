@@ -4,7 +4,7 @@ require 'logger'
 class Logger
   def trace(message)
     prefix = caller.first
-    prefix[REVERSI_DIR] = ''
+    prefix[REVERSI_DIR+"/"] = ''
     prefix.sub!(/in \`block \(\d+ levels\) in reverse\'/, ' ')
     debug("#{prefix}#{message}")
   end

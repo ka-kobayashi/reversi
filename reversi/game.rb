@@ -22,19 +22,20 @@ module Reversi
     def run(options = {})
       options = {
         :interval => 0.1, :size => 8, :load => nil, :timeout => 5, :match => 3,
-        :white => :random, :black => :minimax
+        :white => :random, :black => :minimax, :first_player => Disc::WHITE
       }.merge(options)
 
       score = {Disc::WHITE => 0, Disc::BLACK => 0}
       while true do
         winner = match(options)
-        sleep 1
+        sleep 5
 
         if winner
           p score
           score[winner] += 1
           break if options[:match] == score[winner]
         end
+        options[:first_player] = (options[:first_player] == Disc::WHITE ? Disc::BLACK : Disc::WHITE)
       end
 
       puts "\n\n"

@@ -26,7 +26,7 @@ module Reversi
     end
 
     def reset!
-      @player = Disc::WHITE
+      @player = (@options[:first_player] ? @options[:first_player] : Disc::WHITE)
       @discs = Array.new(@size*@size)
       for y in (0..(@size-1)) do
         for x in (0..(@size-1)) do
@@ -81,7 +81,8 @@ module Reversi
       color = base.color
       for i in (1..@size-1) do
         d = base.offset(x*i, y*i)
-        return false unless (d == nil || d.color == color)
+        break if d == nil
+        return false unless d.color == color
       end
       return true
     end
@@ -160,6 +161,7 @@ module Reversi
       [Disc::WHITE, Disc::BLACK].each do |player|
         @stats[player] = {:score => scores[player], :movable => movable(player), :fixed => fixed(player)}
       end
+      @stats
     end
 
     def stats(player = @player) 
