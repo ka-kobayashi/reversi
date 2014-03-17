@@ -49,7 +49,7 @@ module Reversi
             board.selected = disc
           end
         when Curses::Key::ENTER, ' ', 10
-          return false
+          return false if board.selected.space?
         when 'u', 27 # ESC
           raise UndoException
         when 's'
